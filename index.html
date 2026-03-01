@@ -7,6 +7,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <h1>Web Code Editor</h1>
+        </div>
+        <div class="nav-center">
+            <div id="tabsContainer" class="tabs-container"></div>
+        </div>
+        <div class="nav-right">
+            <button id="undoBtn" class="btn nav-btn" title="Undo">↶</button>
+            <button id="redoBtn" class="btn nav-btn" title="Redo">↷</button>
+            <button id="formatBtn" class="btn nav-btn" title="Format Code">🎨</button>
+            <button id="previewBtn" class="btn nav-btn" title="Live Preview">👁️</button>
+            <button id="themeBtn" class="btn nav-btn" title="Change Theme">🎭</button>
+            <button id="importBtn" class="btn nav-btn" title="Import File">📥</button>
+            <button id="exportBtn" class="btn nav-btn" title="Export File">📤</button>
+        </div>
+    </div>
+
     <div class="editor-container">
         <!-- File Explorer Panel -->
         <div class="file-explorer">
@@ -27,6 +46,28 @@
                 </div>
             </div>
             <div id="editor" class="monaco-editor"></div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div id="previewPanel" class="preview-panel hidden">
+            <div class="panel-header">
+                <h3>Live Preview</h3>
+                <button id="closePreviewBtn" class="btn">×</button>
+            </div>
+            <iframe id="previewFrame" class="preview-frame"></iframe>
+        </div>
+
+        <!-- Console Panel -->
+        <div id="consolePanel" class="console-panel hidden">
+            <div class="panel-header">
+                <h3>Console</h3>
+                <button id="clearConsoleBtn" class="btn">Clear</button>
+                <button id="closeConsoleBtn" class="btn">×</button>
+            </div>
+            <div id="consoleOutput" class="console-output"></div>
+            <div class="console-input">
+                <input id="consoleInput" type="text" placeholder="Type JavaScript code and press Enter...">
+            </div>
         </div>
     </div>
 

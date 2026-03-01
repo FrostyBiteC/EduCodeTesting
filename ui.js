@@ -7,6 +7,7 @@ class UI {
         this.initializeElements();
         this.bindEvents();
         this.renderFileList();
+        this.initializeTabs();
     }
 
     /**
@@ -19,6 +20,21 @@ class UI {
         this.saveBtn = document.getElementById('saveBtn');
         this.deleteBtn = document.getElementById('deleteBtn');
         this.fileNameDisplay = document.getElementById('fileName');
+        this.tabsContainer = document.getElementById('tabsContainer');
+        this.undoBtn = document.getElementById('undoBtn');
+        this.redoBtn = document.getElementById('redoBtn');
+        this.formatBtn = document.getElementById('formatBtn');
+        this.previewBtn = document.getElementById('previewBtn');
+        this.themeBtn = document.getElementById('themeBtn');
+        this.importBtn = document.getElementById('importBtn');
+        this.exportBtn = document.getElementById('exportBtn');
+        this.previewPanel = document.getElementById('previewPanel');
+        this.closePreviewBtn = document.getElementById('closePreviewBtn');
+        this.consolePanel = document.getElementById('consolePanel');
+        this.clearConsoleBtn = document.getElementById('clearConsoleBtn');
+        this.closeConsoleBtn = document.getElementById('closeConsoleBtn');
+        this.consoleOutput = document.getElementById('consoleOutput');
+        this.consoleInput = document.getElementById('consoleInput');
     }
 
     /**
@@ -28,6 +44,25 @@ class UI {
         this.newFileBtn.addEventListener('click', () => this.createNewFile());
         this.saveBtn.addEventListener('click', () => this.saveCurrentFile());
         this.deleteBtn.addEventListener('click', () => this.deleteCurrentFile());
+        this.undoBtn.addEventListener('click', () => editor.undo());
+        this.redoBtn.addEventListener('click', () => editor.redo());
+        this.formatBtn.addEventListener('click', () => editor.formatDocument());
+        this.previewBtn.addEventListener('click', () => this.togglePreview());
+        this.themeBtn.addEventListener('click', () => editor.toggleTheme());
+        this.importBtn.addEventListener('click', () => this.importFile());
+        this.exportBtn.addEventListener('click', () => this.exportFile());
+        this.closePreviewBtn.addEventListener('click', () => this.togglePreview());
+        this.clearConsoleBtn.addEventListener('click', () => editor.clearConsole());
+        this.closeConsoleBtn.addEventListener('click', () => this.toggleConsole());
+        this.consoleInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const code = this.consoleInput.value.trim();
+                if (code) {
+                    editor.evaluateJavaScript(code);
+                    this.consoleInput.value = '';
+                }
+            }
+        });
     }
 
     /**
@@ -51,7 +86,7 @@ class UI {
         if (file) {
             this.renderFileList();
             this.updateFileNameDisplay(file.name);
-            editor.loadFile(file);
+            editor.openFileInTab(file);
             this.highlightActiveFile(file.name);
         } else {
             alert('File already exists!');
@@ -142,8 +177,8 @@ class UI {
     openFile(fileName) {
         const file = fileManager.openFile(fileName);
         if (file) {
+            editor.openFileInTab(file);
             this.updateFileNameDisplay(file.name);
-            editor.loadFile(file);
             this.highlightActiveFile(file.name);
         }
     }
@@ -264,6 +299,136 @@ class UI {
      * @param {string} message - Confirm message
      * @returns {boolean} True if user confirmed, false otherwise
      */
+    /**
+     * Initialize tabs
+     */
+    initializeTabs() {
+        this.updateTabs();
+    }
+
+    /**
+     * Update tabs
+     */
+    updateTabs() {
+        const tabs = editor.getOpenTabs();
+        this.tabsContainer.innerHTML = '';
+        
+        tabs.forEach(file => {
+            const tab = document.createElement('div');
+            tab.className = `tab ${fileManager.getCurrentFile()?.name === file.name ? 'active' : ''}`;
+            tab.dataset.fileName = file.name;
+            
+            tab.innerHTML = `
+                <span class="tab-name">${this.escapeHtml(file.name)}</span>
+                <span class="tab-close">×</span>
+            `;
+            
+            tab.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-close')) {
+                    e.stopPropagation();
+                    editor.closeTab(file.name);
+                } else {
+                    this.openFile(file.name);
+                }
+            });
+            
+            this.tabsContainer.appendChild(tab);
+        });
+    }
+
+    /**
+     * Toggle preview panel
+     */
+    togglePreview() {
+        this.previewPanel.classList.toggle('hidden');
+        if (!this.previewPanel.classList.contains('hidden')) {
+            editor.livePreview();
+        }
+    }
+
+    /**
+     * Toggle console panel
+     */
+    toggleConsole() {
+        this.consolePanel.classList.toggle('hidden');
+    }
+
+    /**
+     * Update console
+     */
+    updateConsole() {
+        const logs = editor.getConsoleOutput();
+        this.consoleOutput.innerHTML = '';
+        
+        logs.forEach(log => {
+            const logElement = document.createElement('div');
+            logElement.className = `console-log ${log.type}`;
+            logElement.textContent = `[${log.timestamp}] ${log.message}`;
+            this.consoleOutput.appendChild(logElement);
+        });
+        
+        // Scroll to bottom
+        this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+    }
+
+    /**
+     * Import file
+     */
+    importFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '*.*';
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = (event) => {
+                const content = event.target.result;
+                const language = fileManager.getLanguageFromFileName(file.name);
+                
+                const existingFile = fileManager.getFile(file.name);
+                if (existingFile) {
+                    if (!confirm(`File ${file.name} already exists. Do you want to replace it?`)) {
+                        return;
+                    }
+                    fileManager.saveFile(file.name, content);
+                } else {
+                    fileManager.createFile(file.name, content, language);
+                }
+                
+                this.renderFileList();
+                this.openFile(file.name);
+                this.showNotification(`File imported: ${file.name}`);
+            };
+            
+            reader.readAsText(file);
+        });
+        
+        input.click();
+    }
+
+    /**
+     * Export file
+     */
+    exportFile() {
+        const currentFile = fileManager.getCurrentFile();
+        if (!currentFile) {
+            alert('No file open');
+            return;
+        }
+        
+        const content = editor.getContent();
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentFile.name;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showNotification(`File exported: ${currentFile.name}`);
+    }
+
     confirm(message) {
         return window.confirm(message);
     }
