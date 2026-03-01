@@ -35,6 +35,7 @@ class UI {
         this.closeConsoleBtn = document.getElementById('closeConsoleBtn');
         this.consoleOutput = document.getElementById('consoleOutput');
         this.consoleInput = document.getElementById('consoleInput');
+        this.hamburgerBtn = document.getElementById('hamburgerBtn');
         
         // WebContainer controls
         this.webcontainerStartBtn = document.getElementById('webcontainerStartBtn');
@@ -73,11 +74,17 @@ class UI {
             }
         });
 
+        // Mobile events
+        this.hamburgerBtn.addEventListener('click', () => this.toggleFileExplorer());
+
         // WebContainer events
         this.webcontainerStartBtn.addEventListener('click', () => this.startWebContainer());
         this.webcontainerStopBtn.addEventListener('click', () => this.stopWebContainer());
         this.webcontainerRestartBtn.addEventListener('click', () => this.restartWebContainer());
         this.npmInstallBtn.addEventListener('click', () => this.runNpmInstall());
+
+        // Handle window resize for responsive behavior
+        window.addEventListener('resize', () => this.handleWindowResize());
     }
 
     /**
@@ -503,6 +510,10 @@ class UI {
         this.previewPanel.classList.toggle('hidden');
         if (!this.previewPanel.classList.contains('hidden')) {
             editor.livePreview();
+            // Close file explorer if open on mobile
+            if (this.fileExplorer.classList.contains('visible')) {
+                this.fileExplorer.classList.remove('visible');
+            }
         }
     }
 
@@ -511,6 +522,10 @@ class UI {
      */
     toggleConsole() {
         this.consolePanel.classList.toggle('hidden');
+        // Close file explorer if open on mobile
+        if (!this.consolePanel.classList.contains('hidden') && this.fileExplorer.classList.contains('visible')) {
+            this.fileExplorer.classList.remove('visible');
+        }
     }
 
     /**
@@ -587,6 +602,84 @@ class UI {
         URL.revokeObjectURL(url);
         
         this.showNotification(`File exported: ${currentFile.name}`);
+    }
+
+    /**
+     * Toggle file explorer visibility
+     */
+    toggleFileExplorer() {
+        this.fileExplorer.classList.toggle('visible');
+        
+        // Close other panels if open
+        if (this.previewPanel && !this.previewPanel.classList.contains('hidden')) {
+            this.togglePreview();
+        }
+        if (this.consolePanel && !this.consolePanel.classList.contains('hidden')) {
+            this.toggleConsole();
+        }
+    }
+
+    /**
+     * Handle window resize for responsive behavior
+     */
+    handleWindowResize() {
+        const width = window.innerWidth;
+        
+        // Auto-hide file explorer on small screens when resizing
+        if (width > 768 && this.fileExplorer.classList.contains('visible')) {
+            this.fileExplorer.classList.remove('visible');
+        }
+        
+        // Adjust UI elements based on screen size
+        if (width <= 480) {
+            // Mobile-specific adjustments
+            this.adjustForMobile();
+        } else if (width <= 768) {
+            // Tablet-specific adjustments
+            this.adjustForTablet();
+        } else {
+            // Desktop-specific adjustments
+            this.adjustForDesktop();
+        }
+    }
+
+    /**
+     * Adjust UI for mobile screens
+     */
+    adjustForMobile() {
+        // Ensure panels are properly positioned
+        if (this.previewPanel) {
+            this.previewPanel.style.width = '100%';
+        }
+        if (this.consolePanel) {
+            this.consolePanel.style.width = '100%';
+        }
+    }
+
+    /**
+     * Adjust UI for tablet screens
+     */
+    adjustForTablet() {
+        // Ensure panels are properly positioned
+        if (this.previewPanel) {
+            this.previewPanel.style.width = '100%';
+        }
+        if (this.consolePanel) {
+            this.consolePanel.style.width = '100%';
+        }
+    }
+
+    /**
+     * Adjust UI for desktop screens
+     */
+    adjustForDesktop() {
+        // Restore default panel widths
+        if (this.previewPanel) {
+            this.previewPanel.style.width = '400px';
+        }
+        if (this.consolePanel) {
+            this.consolePanel.style.width = '400px';
+        }
     }
 
     confirm(message) {

@@ -368,16 +368,43 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
     .preview-panel,
     .console-panel {
         width: 350px;
     }
+    
+    .nav-right {
+        gap: 2px;
+    }
+    
+    .nav-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 768px) {
+    .top-nav {
+        padding: 0 8px;
+    }
+    
+    .nav-left h1 {
+        font-size: 14px;
+    }
+    
     .file-explorer {
         width: 240px;
+        position: absolute;
+        left: -240px;
+        top: 50px;
+        bottom: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+    
+    .file-explorer.visible {
+        left: 0;
     }
     
     .preview-panel,
@@ -396,5 +423,181 @@ body {
     
     .editor-header {
         padding: 10px 12px;
+    }
+    
+    .nav-center {
+        display: none;
+    }
+    
+    .nav-right {
+        gap: 2px;
+    }
+    
+    .nav-btn {
+        padding: 4px 6px;
+        font-size: 12px;
+        min-width: 32px;
+    }
+    
+    .webcontainer-controls {
+        margin-left: 4px;
+        padding-left: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-nav {
+        height: 45px;
+        padding: 0 6px;
+    }
+    
+    .nav-left h1 {
+        font-size: 12px;
+    }
+    
+    .hamburger-btn {
+        padding: 4px 6px;
+        font-size: 14px;
+        margin-right: 4px;
+    }
+    
+    .file-explorer {
+        width: 200px;
+        left: -200px;
+    }
+    
+    .nav-btn {
+        padding: 3px 5px;
+        font-size: 11px;
+        min-width: 28px;
+    }
+    
+    .webcontainer-controls {
+        display: none;
+    }
+    
+    .editor-header {
+        padding: 8px 10px;
+    }
+    
+    .file-name {
+        font-size: 12px;
+    }
+    
+    .editor-actions .btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .panel-header h3 {
+        font-size: 12px;
+    }
+    
+    .console-output {
+        font-size: 12px;
+        padding: 8px;
+    }
+    
+    .console-input input {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
+
+/* Hamburger Menu */
+.hamburger-btn {
+    background-color: transparent;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 8px;
+    display: none;
+}
+
+.hamburger-btn:hover {
+    background-color: #444;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .hamburger-btn {
+        display: inline-block;
+    }
+}
+
+/* File Explorer Responsive Improvements */
+.file-list {
+    padding: 6px;
+}
+
+.file-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    min-height: 40px;
+}
+
+@media (max-width: 480px) {
+    .file-item {
+        padding: 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+    
+    .file-item .delete-file {
+        font-size: 12px;
+        padding: 3px 8px;
+    }
+}
+
+/* Editor Area Responsive Improvements */
+.monaco-editor {
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .monaco-editor {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .monaco-editor {
+        font-size: 18px;
+    }
+}
+
+/* Tabs Responsive Improvements */
+.tabs-container {
+    max-width: 400px;
+}
+
+.tab {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+    .tabs-container {
+        max-width: 300px;
+    }
+    
+    .tab {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tabs-container {
+        max-width: 200px;
+    }
+    
+    .tab {
+        padding: 4px 8px;
+        font-size: 10px;
     }
 }
