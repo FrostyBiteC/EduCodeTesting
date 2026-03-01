@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blob Preview Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+        .test-section h2 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-top: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        iframe {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blob URL Preview Implementation Test</h1>
+        
+        <div class="test-section">
+            <h2>1. File Structure Test</h2>
+            <p>Check if all required files exist:</p>
+            <div id="fileCheckResult" class="test-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Editor Preview System</h2>
+            <p>This test verifies the Blob URL preview functionality in editor.js:</p>
+            <button id="testHtml">Test HTML Preview</button>
+            <button id="testCss">Test CSS Preview</button>
+            <button id="testJs">Test JavaScript Preview</button>
+            <div id="previewResult" class="test-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. Preview Iframe</h2>
+            <p>Iframe that would normally display the preview:</p>
+            <iframe id="testIframe" srcdoc="<h3>Preview will load here...</h3>"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Test file structure
+        const requiredFiles = ['editor.js', 'ui.js', 'files.js', 'storage.js', 'index.html', 'style.css'];
+        
+        function checkFiles() {
+            const resultDiv = document.getElementById('fileCheckResult');
+            let allFound = true;
+            
+            requiredFiles.forEach(file => {
+                const div = document.createElement('div');
+                div.textContent = `Checking ${file}...`;
+                
+                fetch(file)
+                    .then(response => {
+                        if (response.ok) {
+                            div.className = 'success';
+                            div.textContent = `✓ ${file} found`;
+                        } else {
+                            div.className = 'error';
+                            div.textContent = `✗ ${file} not found (HTTP ${response.status})`;
+                            allFound = false;
+                        }
+                    })
+                    .catch(error => {
+                        div.className = 'error';
+                        div.textContent = `✗ ${file} not found (${error.message})`;
+                        allFound = false;
+                    });
+                
+                resultDiv.appendChild(div);
+            });
+        }
+        
+        // Test preview functionality by simulating editor behavior
+        function testHtmlPreview() {
+            const content = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Preview Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .content {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML Preview Test Page</h1>
+        <div class="content">
+            <p>This is a test of the Blob URL preview system for HTML files.</p>
+            <p>The preview should display this complete HTML document.</p>
+            <ul>
+                <li>HTML structure is preserved</li>
+                <li>CSS styles are applied</li>
+                <li>Content is properly rendered</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+`;
+            
+            try {
+                const blob = new Blob([content], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const iframe = document.getElementById('testIframe');
+                iframe.src = blobUrl;
+                
+                iframe.onload = () => {
+                    URL.revokeObjectURL(blobUrl);
+                };
+                
+                document.getElementById('previewResult').className = 'test-result success';
+                document.getElementById('previewResult').textContent = '✓ HTML preview generated successfully using Blob URL';
+            } catch (error) {
+                document.getElementById('previewResult').className = 'test-result error';
+                document.getElementById('previewResult').textContent = `✗ HTML preview error: ${error.message}`;
+            }
+        }
+        
+        function testCssPreview() {
+            const content = `
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e8f4f8;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+
+h2 {
+    color: #3498db;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 5px;
+}
+
+p {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.button {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #2980b9;
+}
+
+.list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.list li:last-child {
+    border-bottom: none;
+}
+`;
+            
+            const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Preview Test</title>
+    <style>${content}</style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSS Preview Test</h1>
+        <h2>Test Styles</h2>
+        <p>This is a test of the Blob URL preview system for CSS files. The styles are applied to this HTML document.</p>
+        <a href="#" class="button">Click Me</a>
+        <h3>Features</h3>
+        <ul class="list">
+            <li>Background colors</li>
+            <li>Font styling</li>
+            <li>Container layout</li>
+            <li>Button styling</li>
+            <li>List formatting</li>
+        </ul>
+    </div>
+</body>
+</html>
+`;
+            
+            try {
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const iframe = document.getElementById('testIframe');
+                iframe.src = blobUrl;
+                
+                iframe.onload = () => {
+                    URL.revokeObjectURL(blobUrl);
+                };
+                
+                document.getElementById('previewResult').className = 'test-result success';
+                document.getElementById('previewResult').textContent = '✓ CSS preview generated successfully using Blob URL';
+            } catch (error) {
+                document.getElementById('previewResult').className = 'test-result error';
+                document.getElementById('previewResult').textContent = `✗ CSS preview error: ${error.message}`;
+            }
+        }
+        
+        function testJsPreview() {
+            const content = `
+// JavaScript preview test
+console.log('JavaScript preview test started');
+
+function greet() {
+    const name = prompt('Enter your name:');
+    if (name) {
+        alert(\`Hello, \${name}! This is a JavaScript preview test.\`);
+        document.getElementById('greeting').textContent = \`Welcome, \${name}!\`;
+    } else {
+        alert('Please enter your name');
+    }
+}
+
+// Add event listener
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('greetBtn');
+    if (btn) {
+        btn.addEventListener('click', greet);
+    }
+});
+
+console.log('JavaScript preview test completed');
+`;
+            
+            const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Preview Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #greeting {
+            color: #4CAF50;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript Preview Test</h1>
+        <p>This is a test of the Blob URL preview system for JavaScript files.</p>
+        <button id="greetBtn">Click to Greet</button>
+        <div id="greeting"></div>
+    </div>
+    <script>
+        ${content}
+    </script>
+</body>
+</html>
+`;
+            
+            try {
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                const iframe = document.getElementById('testIframe');
+                iframe.src = blobUrl;
+                
+                iframe.onload = () => {
+                    URL.revokeObjectURL(blobUrl);
+                };
+                
+                document.getElementById('previewResult').className = 'test-result success';
+                document.getElementById('previewResult').textContent = '✓ JavaScript preview generated successfully using Blob URL';
+            } catch (error) {
+                document.getElementById('previewResult').className = 'test-result error';
+                document.getElementById('previewResult').textContent = `✗ JavaScript preview error: ${error.message}`;
+            }
+        }
+        
+        // Add event listeners
+        document.getElementById('testHtml').addEventListener('click', testHtmlPreview);
+        document.getElementById('testCss').addEventListener('click', testCssPreview);
+        document.getElementById('testJs').addEventListener('click', testJsPreview);
+        
+        // Run initial tests
+        window.addEventListener('load', checkFiles);
+    </script>
+</body>
+</html>

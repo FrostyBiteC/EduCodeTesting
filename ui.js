@@ -35,8 +35,17 @@ class UI {
         this.closeConsoleBtn = document.getElementById('closeConsoleBtn');
         this.consoleOutput = document.getElementById('consoleOutput');
         this.consoleInput = document.getElementById('consoleInput');
+        
+        // WebContainer controls
+        this.webcontainerStartBtn = document.getElementById('webcontainerStartBtn');
+        this.webcontainerStopBtn = document.getElementById('webcontainerStopBtn');
+        this.webcontainerRestartBtn = document.getElementById('webcontainerRestartBtn');
+        this.npmInstallBtn = document.getElementById('npmInstallBtn');
     }
 
+    /**
+     * Bind event listeners
+     */
     /**
      * Bind event listeners
      */
@@ -63,6 +72,12 @@ class UI {
                 }
             }
         });
+
+        // WebContainer events
+        this.webcontainerStartBtn.addEventListener('click', () => this.startWebContainer());
+        this.webcontainerStopBtn.addEventListener('click', () => this.stopWebContainer());
+        this.webcontainerRestartBtn.addEventListener('click', () => this.restartWebContainer());
+        this.npmInstallBtn.addEventListener('click', () => this.runNpmInstall());
     }
 
     /**
@@ -90,6 +105,151 @@ class UI {
             this.highlightActiveFile(file.name);
         } else {
             alert('File already exists!');
+        }
+    }
+
+    /**
+     * Log to console
+     */
+    logToConsole(message, type = 'info') {
+        const logElement = document.createElement('div');
+        logElement.className = `console-log console-log-${type}`;
+        logElement.textContent = message;
+        this.consoleOutput.appendChild(logElement);
+        this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+    }
+
+    /**
+     * Start WebContainer
+     */
+    async startWebContainer() {
+        try {
+            this.logToConsole('Initializing WebContainer...', 'info');
+            
+            // Check if WebContainer is available
+            if (!WebContainerManager.isWebContainerAvailable()) {
+                this.logToConsole('WebContainer is not available in this browser', 'error');
+                return;
+            }
+
+            // Initialize WebContainer
+            const initialized = await webContainerManager.initialize();
+            if (!initialized) {
+                return;
+            }
+
+            // Sync files
+            const synced = await webContainerManager.syncFiles();
+            if (!synced) {
+                return;
+            }
+
+            // Check if project is complex
+            if (WebContainerManager.isComplexProject()) {
+                this.logToConsole('Detected complex project - installing dependencies...', 'info');
+                const installSuccess = await webContainerManager.runNpmInstall();
+                if (!installSuccess) {
+                    return;
+                }
+
+                // Start application
+                const startSuccess = await webContainerManager.runNpmStart();
+                if (!startSuccess) {
+                    return;
+                }
+            } else {
+                this.logToConsole('Simple project detected - using Blob Method for preview', 'info');
+                this.logToConsole('Create a package.json file to use WebContainer features', 'info');
+            }
+
+            this.updateWebContainerUI();
+        } catch (error) {
+            this.logToConsole(`Error starting WebContainer: ${error.message}`, 'error');
+            console.error('WebContainer startup error:', error);
+        }
+    }
+
+    /**
+     * Stop WebContainer
+     */
+    async stopWebContainer() {
+        try {
+            await webContainerManager.stop();
+            this.updateWebContainerUI();
+        } catch (error) {
+            this.logToConsole(`Error stopping WebContainer: ${error.message}`, 'error');
+            console.error('WebContainer stop error:', error);
+        }
+    }
+
+    /**
+     * Restart WebContainer
+     */
+    async restartWebContainer() {
+        try {
+            await webContainerManager.restart();
+            this.updateWebContainerUI();
+        } catch (error) {
+            this.logToConsole(`Error restarting WebContainer: ${error.message}`, 'error');
+            console.error('WebContainer restart error:', error);
+        }
+    }
+
+    /**
+     * Run npm install
+     */
+    async runNpmInstall() {
+        try {
+            // Initialize WebContainer if not already initialized
+            if (!webContainerManager.webContainer) {
+                await webContainerManager.initialize();
+            }
+
+            // Sync files before installing
+            await webContainerManager.syncFiles();
+            
+            await webContainerManager.runNpmInstall();
+        } catch (error) {
+            this.logToConsole(`Error running npm install: ${error.message}`, 'error');
+            console.error('npm install error:', error);
+        }
+    }
+
+    /**
+     * Update WebContainer UI state
+     */
+    updateWebContainerUI() {
+        const isRunning = webContainerManager.isRunning;
+        
+        this.webcontainerStartBtn.disabled = isRunning;
+        this.webcontainerStopBtn.disabled = !isRunning;
+        this.webcontainerRestartBtn.disabled = !webContainerManager.webContainer;
+        this.npmInstallBtn.disabled = !webContainerManager.webContainer;
+
+        // Add visual feedback
+        if (isRunning) {
+            this.webcontainerStartBtn.classList.add('btn-disabled');
+            this.webcontainerStopBtn.classList.remove('btn-disabled');
+            this.webcontainerStopBtn.classList.add('btn-active');
+        } else {
+            this.webcontainerStartBtn.classList.remove('btn-disabled');
+            this.webcontainerStopBtn.classList.remove('btn-active');
+            this.webcontainerStopBtn.classList.add('btn-disabled');
+        }
+    }
+
+    /**
+     * Open WebContainer preview
+     */
+    openWebContainerPreview() {
+        try {
+            const previewFrame = document.getElementById('previewFrame');
+            previewFrame.src = 'http://localhost:3131';
+            this.previewPanel.classList.remove('hidden');
+            this.logToConsole('Preview window opened for WebContainer application', 'success');
+        } catch (error) {
+            this.logToConsole(`Error opening preview: ${error.message}`, 'error');
+            console.error('Preview error:', error);
         }
     }
 

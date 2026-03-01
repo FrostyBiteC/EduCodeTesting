@@ -1,16 +1,17 @@
 {
   "name": "educodetesting",
   "version": "1.0.0",
-  "description": "",
-  "main": "editor.js",
+  "description": "Web code editor with WebContainer integration",
+  "main": "server.js",
   "scripts": {
+    "dev": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FrostyBiteC/EduCodeTesting.git"
   },
-  "keywords": [],
+  "keywords": ["code-editor", "webcontainer", "monaco-editor"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

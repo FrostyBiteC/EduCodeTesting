@@ -390,42 +390,83 @@ class Editor {
     }
 
     /**
-     * Live preview HTML content
+     * Live preview HTML content using Blob URL
      */
     livePreview() {
-        const content = this.getContent();
         const previewFrame = document.getElementById('previewFrame');
         
-        if (this.getCurrentLanguage() === 'html') {
-            previewFrame.srcdoc = content;
-        } else if (this.getCurrentLanguage() === 'javascript') {
+        // Check if WebContainer is running and project is complex
+        if (webContainerManager && webContainerManager.isRunning && WebContainerManager.isComplexProject()) {
+            // WebContainer is handling preview
+            previewFrame.src = 'http://localhost:3131';
+            return;
+        }
+
+        const content = this.getContent();
+        
+        try {
+            let htmlContent = '';
+            
+            if (this.getCurrentLanguage() === 'html') {
+                htmlContent = content;
+            } else if (this.getCurrentLanguage() === 'javascript') {
+                htmlContent = `
+                    <html>
+                        <body>
+                            <script>
+                                ${content}
+                            </script>
+                        </body>
+                    </html>
+                `;
+            } else if (this.getCurrentLanguage() === 'css') {
+                htmlContent = `
+                    <html>
+                        <head>
+                            <style>${content}</style>
+                        </head>
+                        <body>
+                            <h1>CSS Preview</h1>
+                            <p>This is a preview of your CSS styles.</p>
+                        </body>
+                    </html>
+                `;
+            } else {
+                htmlContent = `
+                    <html>
+                        <body>
+                            <h1>Preview Not Available</h1>
+                            <p>Preview is only available for HTML, JavaScript, and CSS files.</p>
+                        </body>
+                    </html>
+                `;
+            }
+            
+            // Create Blob from HTML content
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            
+            // Create Blob URL
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Update iframe source with Blob URL
+            previewFrame.src = blobUrl;
+            
+            // Cleanup previous Blob URL when iframe loads to avoid memory leaks
+            previewFrame.onload = () => {
+                URL.revokeObjectURL(blobUrl);
+            };
+            
+        } catch (error) {
+            console.error('Error creating preview Blob URL:', error);
+            this.addConsoleLog(`Preview error: ${error.message}`, 'error');
+            
+            // Fallback to srcdoc if Blob method fails
             previewFrame.srcdoc = `
                 <html>
                     <body>
-                        <script>
-                            ${content}
-                        </script>
-                    </body>
-                </html>
-            `;
-        } else if (this.getCurrentLanguage() === 'css') {
-            previewFrame.srcdoc = `
-                <html>
-                    <head>
-                        <style>${content}</style>
-                    </head>
-                    <body>
-                        <h1>CSS Preview</h1>
-                        <p>This is a preview of your CSS styles.</p>
-                    </body>
-                </html>
-            `;
-        } else {
-            previewFrame.srcdoc = `
-                <html>
-                    <body>
-                        <h1>Preview Not Available</h1>
-                        <p>Preview is only available for HTML, JavaScript, and CSS files.</p>
+                        <h1>Preview Error</h1>
+                        <p>Failed to generate preview. Please check the console for details.</p>
+                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; margin-top: 10px;">${error.message}</pre>
                     </body>
                 </html>
             `;
