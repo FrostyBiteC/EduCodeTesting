@@ -14,7 +14,6 @@ class Editor {
         this.consoleOutput = [];
         
         this.initializeMonaco();
-        this.initializeLanguageServices();
     }
 
     /**
@@ -24,9 +23,15 @@ class Editor {
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
         
         require(['vs/editor/editor.main'], () => {
-            this.initialized = true;
-            this.createEditor();
-            this.initializeLanguageFeatures();
+            try {
+                this.initialized = true;
+                this.initializeLanguageServices();
+                this.createEditor();
+                this.initializeLanguageFeatures();
+            } catch (error) {
+                console.error('Error initializing Monaco Editor:', error);
+                ui.showNotification('Failed to initialize Monaco Editor: ' + error.message, 'error');
+            }
         });
     }
 
@@ -370,7 +375,7 @@ class Editor {
         };
         
         this.consoleOutput.push(logEntry);
-        ui.updateConsole();
+        ui.logToConsole(`${timestamp} - ${message}`, type);
     }
 
     /**
@@ -378,7 +383,7 @@ class Editor {
      */
     clearConsole() {
         this.consoleOutput = [];
-        ui.updateConsole();
+        ui.consoleOutput.innerHTML = '';
     }
 
     /**
@@ -396,9 +401,10 @@ class Editor {
         const previewFrame = document.getElementById('previewFrame');
         
         // Check if WebContainer is running and project is complex
+        const webContainerUrl = webContainerManager?.webContainerUrl || 'http://localhost:3131';
         if (webContainerManager && webContainerManager.isRunning && WebContainerManager.isComplexProject()) {
             // WebContainer is handling preview
-            previewFrame.src = 'http://localhost:3131';
+            previewFrame.src = webContainerUrl;
             return;
         }
 

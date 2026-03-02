@@ -36,6 +36,7 @@ class UI {
         this.consoleOutput = document.getElementById('consoleOutput');
         this.consoleInput = document.getElementById('consoleInput');
         this.hamburgerBtn = document.getElementById('hamburgerBtn');
+        this.toggleConsoleBtn = document.getElementById('toggleConsoleBtn');
         
         // WebContainer controls
         this.webcontainerStartBtn = document.getElementById('webcontainerStartBtn');
@@ -76,6 +77,7 @@ class UI {
 
         // Mobile events
         this.hamburgerBtn.addEventListener('click', () => this.toggleFileExplorer());
+        this.toggleConsoleBtn.addEventListener('click', () => this.toggleConsole());
 
         // WebContainer events
         this.webcontainerStartBtn.addEventListener('click', () => this.startWebContainer());
@@ -398,37 +400,21 @@ class UI {
     /**
      * Show notification
      * @param {string} message - Notification message
-     * @param {string} type - Notification type (success, error, warning)
+     * @param {string} type - Notification type (success, error, warning, info)
      */
     showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
         
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            border-radius: 4px;
-            color: white;
-            font-size: 14px;
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            background-color: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'};
-        `;
+        // Use CSS classes for styling instead of inline styles
+        notification.classList.add('show');
 
         document.body.appendChild(notification);
 
-        // Slide in
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-
         // Auto remove
         setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
+            notification.classList.remove('show');
             setTimeout(() => {
                 if (document.body.contains(notification)) {
                     document.body.removeChild(notification);
@@ -444,10 +430,10 @@ class UI {
      */
     escapeHtml(text) {
         const map = {
-            '&': '&',
-            '<': '<',
-            '>': '>',
-            '"': '"',
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
             "'": '&#039;'
         };
         return text.replace(/[&<>"]/g, m => map[m]);
@@ -522,6 +508,7 @@ class UI {
      */
     toggleConsole() {
         this.consolePanel.classList.toggle('hidden');
+        this.toggleConsoleBtn.classList.toggle('active', !this.consolePanel.classList.contains('hidden'));
         // Close file explorer if open on mobile
         if (!this.consolePanel.classList.contains('hidden') && this.fileExplorer.classList.contains('visible')) {
             this.fileExplorer.classList.remove('visible');
@@ -609,6 +596,7 @@ class UI {
      */
     toggleFileExplorer() {
         this.fileExplorer.classList.toggle('visible');
+        this.hamburgerBtn.classList.toggle('active', this.fileExplorer.classList.contains('visible'));
         
         // Close other panels if open
         if (this.previewPanel && !this.previewPanel.classList.contains('hidden')) {

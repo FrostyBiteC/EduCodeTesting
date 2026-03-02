@@ -9,6 +9,7 @@ class WebContainerManager {
         this.projectFiles = new Map();
         this.servers = new Map();
         this.consoleOutput = [];
+        this.webContainerUrl = 'http://localhost:3131';
     }
 
     /**

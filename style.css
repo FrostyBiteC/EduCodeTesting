@@ -97,6 +97,45 @@ body {
     cursor: not-allowed !important;
 }
 
+.hamburger-btn.active {
+    background-color: #444;
+    color: white;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.warning {
+    background-color: #ffc107;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
 .nav-btn {
     background-color: transparent;
     color: #ccc;
